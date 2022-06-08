@@ -5,4 +5,4 @@
 * Koennern_Feldblock_EPSG31468.shp - LPIS field block shapefile
 
 # R-factor
-* R-Faktor_EPSG31468.tif -  DWD R-factor for Germany accoding to Auerswald et al. (2019) 
+* R-Faktor_EPSG31468.tif -  DWD R-factor for Germany accoding to [Auerswald et al. (2019)](https://doi.org/10.5194/hess-23-1819-2019) 
