@@ -45,7 +45,7 @@ rsaga.get.usage("ta_lighting",0,env =  myenv)
 #########################################################################################################
 ##Function
 #########################################################################################################
-fLS <- function(DEM.DIR,
+fLS <- function(IN.DIR,
                 DEM,
                 DEM.FRM,
                 OUT.DIR,
@@ -56,7 +56,7 @@ fLS <- function(DEM.DIR,
   rsaga.geoprocessor(
     lib="io_grid",
     module=1,
-    param=list(FILE=paste(DEM.DIR,DEM,DEM.FRM,sep=""),
+    param=list(FILE=paste(IN.DIR,DEM,DEM.FRM,sep=""),
                GRID=paste(OUT.DIR,DEM,".sgrd",sep="")),
     env=myenv)
   
@@ -82,15 +82,31 @@ fLS <- function(DEM.DIR,
   rsaga.geoprocessor(
     lib="ta_hydrology",
     module=25, 
-    param=list(DEM=paste(W.DIR,OUT.DIR,DEM,"_FILL.sgrd",sep=""),
-             FIELDS=paste(W.DIR,IN.DIR,FB,sep=""),
-             UPSLOPE_AREA=paste(paste(W.DIR,OUT.DIR,DEM,"_FB-UA.sgrd",sep="")),
-             UPSLOPE_LENGTH=paste(paste(W.DIR,OUT.DIR,DEM,"_FB-UL.sgrd",sep="")),
-             UPSLOPE_SLOPE=paste(paste(W.DIR,OUT.DIR,DEM,"_FB-US.sgrd",sep="")),
-             LS_FACTOR=paste(W.DIR,OUT.DIR,DEM,"_FB-LS.sgrd",sep=""),
-             BALANCE=paste(W.DIR,OUT.DIR,DEM,"_BLC.sgrd",sep=""),
+    param=list(DEM=paste(OUT.DIR,DEM,"_FILL.sgrd",sep=""),
+             FIELDS=paste(IN.DIR,FB,sep=""),
+             UPSLOPE_AREA=paste(paste(OUT.DIR,DEM,"_FB-UA.sgrd",sep="")),
+             UPSLOPE_LENGTH=paste(paste(OUT.DIR,DEM,"_FB-UL.sgrd",sep="")),
+             UPSLOPE_SLOPE=paste(paste(OUT.DIR,DEM,"_FB-US.sgrd",sep="")),
+             LS_FACTOR=paste(OUT.DIR,DEM,"_FB-LS.sgrd",sep=""),
+             BALANCE=paste(OUT.DIR,DEM,"_BLC.sgrd",sep=""),
              METHOD=1,
              METHOD_AREA=3,
              METHOD_SLOPE=1),
     env=myenv)
+  
+  
+  #------------------------------------------------------------------------------- 
+print("asc export")
+#-------------------------------------------------------------------------------
+setwd(file.path(OUT.DIR))
+l.g <- mixedsort(list.files(pattern=paste("^(",DEM,").*\\.sgrd$",sep="")),decreasing=TRUE)
+print(l.g)
+pb <- txtProgressBar(min=1, max=length(l.g), style=3)
+for(i in 1:length(l.g)){
+  rsaga.sgrd.to.esri(in.sgrds=paste(OUT.DIR,l.g[i],sep=""), 
+                   out.grids=paste(OUT.DIR,substr(l.g[i],1,nchar(l.g[i])-5),".asc",sep=""), 
+                   prec=3,
+                   env=myenv)
+  setTxtProgressBar(pb, i)
+}
 }
