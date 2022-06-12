@@ -17,4 +17,9 @@
 * OUT.DIR - output directory
 * COL.NAME - name of column which should be created
 
-#
+# fPlotR()
+* RU.DIR - directory with reference unit shape file
+* RU.SHP - name of reference unit shape file
+* PM1 - first parameter which should be compared
+* PM2 - first parameter which should be compared
+* OUT.DIR - output directory
