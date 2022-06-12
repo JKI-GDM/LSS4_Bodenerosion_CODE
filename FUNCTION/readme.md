@@ -1,1 +1,11 @@
+# fLSrsaga()/fLSrsagacmd
+* IN.DIR - direction with input data
+* DEM - DEM name without format
+* DEM.FRM - DEM format  (e.g. ".asc")
+* OUT.DIR - output direction
+* EPSG - EPSG code of input data
+* PARCEL - name of parcel/field block shape file
+* M.CA - Method for flow accumulation
+* M.LS1 - Method for LS-factor calculation (without parcels)
+* M.LS2 - Method for LS-factor calculation (with parcels)
 
