@@ -1,4 +1,4 @@
-# fLSrsaga()/fLSrsagacmd
+# fLSrsaga()/fLSrsagacmd()
 * IN.DIR - direction with input data
 * DEM - DEM name without format
 * DEM.FRM - DEM format  (e.g. ".asc")
