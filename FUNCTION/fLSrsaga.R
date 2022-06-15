@@ -15,6 +15,11 @@ loadandinstall(packages)
 ##Setting RSAGA environment
 myenv <- rsaga.env()
 
+##Alternative 
+#myenv <- rsaga.env(workspace="c:/Users/.../_temp/", 
+#                   path="c:/...",
+#                   modules = "c:/.../modules")
+
 print("RSAGA modules")
 print(rsaga.get.libraries(path= myenv$modules))
 
