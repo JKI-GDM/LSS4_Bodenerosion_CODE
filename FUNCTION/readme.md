@@ -1,4 +1,4 @@
-# fLSrsaga()/fLSrsagacmd()
+# fLSrsagacmd()
 * DATA.DIR - directory with input and output data
 * DEM - DEM name without format
 * DEM.FRM - DEM format  (e.g. ".asc")
