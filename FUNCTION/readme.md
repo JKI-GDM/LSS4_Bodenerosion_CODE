@@ -1,24 +1,27 @@
 # fLSrsagacmd()
 * DATA.DIR - directory with input and output data
-* DEM - DEM name without format
+* DEM.FILE - DEM name without format
 * DEM.FRM - DEM format  (e.g. ".asc")
 * EPSG - EPSG code of input data
 * PARCEL - name of parcel/field block shape file
-* M.CA - Method for flow accumulation
-* M.LS1 - Method for LS-factor calculation (without parcels)
-* M.LS2 - Method for LS-factor calculation (with parcels)
+* ASC.EXPORT=TRUE
 
 # fZonalStatistics()
-* RASTER.DIR - directory with raster data
-* RASTER.FILE - name of raster data file 
-* RU.DIR - directory with reference unit shape file
-* RU.SHP - name of reference unit shape file
-* OUT.DIR - output directory
+* DATA.DIR - directory with raster data
+* RASTER.FILE - name of raster data file with format
+* RU.SHP - name of reference unit shape file with format
 * COL.NAME - name of column which should be created
 
-# fPlotR()
-* RU.DIR - directory with reference unit shape file
-* RU.SHP - name of reference unit shape file
-* PM1 - first parameter which should be compared
-* PM2 - first parameter which should be compared
-* OUT.DIR - output directory
+# fRasterMap()
+* DATA.DIR - directory with input and output data
+* RASTER.FILE -  name of raster file without format
+* RASTER.FRM - format of raster file  (e.g. ".asc")
+* VECTOR.FILE - name of vector file without format
+* VECTOR.FRM - format of vector file  (e.g. ".shp")
+* N - number of classes
+* D - number of decimal places
+* REVERS=FALSE - direction of the color gradient
+* EPSG - EPSG code of input data
+* AXES=TRUE
+* REPROJECT=TRUE
+* TITLE - legend title
