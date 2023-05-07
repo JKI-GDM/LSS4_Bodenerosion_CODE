@@ -3,9 +3,9 @@
 #LS-factor::Dealing with R and SAGA-GIS
 #######################################################################################
 #######################################################################################
-DATA.DIR = "d:/Dropbox/GIT/ABAG/DATA/"
-FUNC.DIR = "d:/Dropbox/GIT/ABAG/FUNCTION/"
-OUT.DIR = "d:/Dropbox/GIT/ABAG/DATA/DGM20/"
+DATA.DIR = ".../INPUT/"
+FUNC.DIR = ".../FUNCTION/"
+OUT.DIR = ".../INPUT/DGM20/"
 EPSG = 31468
 DEM.FILE = "DGM20_EPSG31468"
 VECTOR.FILE = "Koennern_Feldblock_EPSG31468.shp"
@@ -87,14 +87,15 @@ pr <- raster::rasterToPolygons(r)
 pr$ID <- 1:nrow(pr@data)
 
 #Export as shapefile
-write_sf(st_as_sf(pr),paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""), delete_layer = TRUE)
+if(!require(sf))install.packages(sf)
+sf::write_sf(st_as_sf(pr),paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""), delete_layer = TRUE)
 
 #List asc-files, which should be coupled 
 setwd(file.path(OUT.DIR))
 l.g <- mixedsort(list.files(pattern=paste("^(",DEM.FILE,").*\\.asc$",sep="")),decreasing=TRUE)
 print(l.g)
 
-source("d:/Dropbox/GIT/ABAG/FUNCTION/fZonalStatistics.R")
+source(file.path(FUNC.DIR,"fZonalStatistics.R"))
 NAMESLIST <- c("LSwb","R","LSnB","KBS","KBK")
 for (i in 1:length(l.g)) {
   fZonalStatistics(DATA.DIR=OUT.DIR,
