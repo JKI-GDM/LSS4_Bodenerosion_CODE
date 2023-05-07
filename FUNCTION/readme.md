@@ -8,7 +8,7 @@
 * M.LS1 - Method for LS-factor calculation (without parcels)
 * M.LS2 - Method for LS-factor calculation (with parcels)
 
-# fZonalStatistics
+# fZonalStatistics()
 * RASTER.DIR - directory with raster data
 * RASTER.FILE - name of raster data file 
 * RU.DIR - directory with reference unit shape file
