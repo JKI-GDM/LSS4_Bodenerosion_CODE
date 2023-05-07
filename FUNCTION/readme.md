@@ -1,8 +1,7 @@
 # fLSrsaga()/fLSrsagacmd()
-* IN.DIR - directory with input data
+* DATA.DIR - directory with input and output data
 * DEM - DEM name without format
 * DEM.FRM - DEM format  (e.g. ".asc")
-* OUT.DIR - output directory
 * EPSG - EPSG code of input data
 * PARCEL - name of parcel/field block shape file
 * M.CA - Method for flow accumulation
