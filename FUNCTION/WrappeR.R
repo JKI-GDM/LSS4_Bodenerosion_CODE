@@ -73,6 +73,7 @@ plot(rf,
 
 rf <- raster::resample(rf, r, method='bilinear')
 plot(rf)
+library(sf)
 writeRaster(rf,paste(DATA.DIR,DEM.FILE,"_R.asc",sep=""), overwrite=TRUE)
 
 
