@@ -11,7 +11,7 @@
 #Settings
 #######################################################################################
 #Directories and input data
-DATA.DIR = "d:/Dropbox/GIT/ABAG/DATA/"
+DATA.DIR = "d:/Dropbox/GIT/ABAG/INPUT/"
 FUNC.DIR = "d:/Dropbox/GIT/ABAG/FUNCTION/"
 EPSG = 31468
 DEM.FILE = "DGM90_EPSG31468"
