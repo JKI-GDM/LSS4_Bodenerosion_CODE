@@ -6,18 +6,19 @@
 #Markus Möller, markus.moeller@julius-kuehn.de  
 #######################################################################################
 
+
 #######################################################################################
 #Settings
 #######################################################################################
 #Directories and input data
-DATA.DIR = ".../INPUT/"
-FUNC.DIR = ".../FUNCTION/"
+DATA.DIR = "d:/Dropbox/GIT/ABAG/DATA/"
+FUNC.DIR = "d:/Dropbox/GIT/ABAG/FUNCTION/"
 EPSG = 31468
 DEM.FILE = "DGM90_EPSG31468"
 VECTOR.FILE = "Koennern_Feldblock_EPSG31468.shp"
 
 #Create directory
-OUT.DIR = paste(DATA.DIR,"DEM90/",sep="")
+OUT.DIR = "d:/Dropbox/GIT/ABAG/DATA/DGM90/"
 dir.create(OUT.DIR)
 
 #Load and install packages
@@ -42,7 +43,6 @@ loadandinstall(packages)
 #Package information
 packageDescription("caret")
 ??caret::caret
-
 
 #######################################################################################
 #LS factor derivation with SAGA-GIS
@@ -77,7 +77,7 @@ extent(r) <- extent(k)
 kbs <- raster::rasterize(k, r, 'KBxKH_BSGB')
 plot(kbs)
 # Export
-writeRaster(kbs,paste(OUT.DIR,DEM.FILE,"_KBS.asc",sep=""),overwrite=TRUE)
+raster::writeRaster(kbs,paste(OUT.DIR,DEM.FILE,"_KBS.asc",sep=""),overwrite=TRUE)
 
 #Import soil map 1:50000 (VBK 50) 
 k <- sf::read_sf(paste(DATA.DIR,"Koennern_VBK_EPSG31468.shp",sep="")) 
@@ -89,10 +89,10 @@ extent(r) <- extent(k)
 kbk <- raster::rasterize(k, r, 'K_Faktor')
 plot(kbk)
 #Export
-writeRaster(kbk,paste(OUT.DIR,DEM.FILE,"_KBK.asc",sep=""),overwrite=TRUE)
+raster::writeRaster(kbk,paste(OUT.DIR,DEM.FILE,"_KBK.asc",sep=""),overwrite=TRUE)
 
 #######################################################################################
-#R-factor (Resampling and cropping of existing of raster data set)
+#R factor (Resampling and cropping of existing of raster data set)
 #######################################################################################
 #Import
 rf <- raster::raster(paste(DATA.DIR,"R-Faktor_EPSG31468.tif",sep=""))
@@ -108,7 +108,7 @@ plot(rf,
 rf <- raster::resample(rf, r, method='bilinear')
 plot(rf)
 #Export
-writeRaster(rf,paste(OUT.DIR,DEM.FILE,"_R.asc",sep=""), overwrite=TRUE)
+raster::writeRaster(rf,paste(OUT.DIR,DEM.FILE,"_R.asc",sep=""), overwrite=TRUE)
 
 
 #######################################################################################
@@ -120,11 +120,11 @@ pr <- raster::rasterToPolygons(r)
 pr$ID <- 1:nrow(pr@data)
 
 #Export as shapefile
-write_sf(st_as_sf(pr),paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""), delete_layer = TRUE)
+sf::write_sf(st_as_sf(pr),paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""), delete_layer = TRUE)
 
 #List asc-files, which should be coupled 
 setwd(file.path(OUT.DIR))
-l.g <- mixedsort(list.files(pattern=paste("^(",DEM.FILE,").*\\.asc$",sep="")),decreasing=TRUE)
+l.g <- gtools::mixedsort(list.files(pattern=paste("^(",DEM.FILE,").*\\.asc$",sep="")),decreasing=TRUE)
 print(l.g)
 
 source("d:/Dropbox/GIT/ABAG/FUNCTION/fZonalStatistics.R")
@@ -139,9 +139,9 @@ for (i in 1:length(l.g)){
 #Calculating a correlation matrix of ABAG factors
 #######################################################################################
 #Import
-A <- read_sf(paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""))
+A <- sf::read_sf(paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""))
 #Remove geometry information
-st_geometry(A) <- NULL
+sf::st_geometry(A) <- NULL
 
 #create a data frame of ABAG factors
 df.A <- data.frame(A[2:6])
@@ -165,12 +165,14 @@ corrplot::corrplot(cor(df.A),
 #######################################################################################
 #Calculation of Soil Loss and analyzing  ABAG factors 
 #######################################################################################
-#Calculating ABAG variant
-head(df.A)
+#Selecting factos
 df.A <- df.A[c(1,2,4)]
 head(df.A)
+
+#Factor multiplication
 df.A$A =  Reduce(`*`, df.A)#Product calculation
 head(df.A)
+
 #Derive training data set
 set.seed(123)
 indxTrain <- caret::createDataPartition(y = df.A$A, p = 0.25,list = FALSE)
@@ -185,19 +187,17 @@ ks.test(df.A.train$A,df.A$A)
 
 #Model
 set.seed(123)
-ctrl <- trainControl(method="repeatedcv",
-                     number=5,
-                     savePredictions = TRUE,
-                     allowParallel = TRUE)
+ctrl <- caret::trainControl(method="repeatedcv",
+                            number=5)
 
 head(df.A.train)
-m.Fit <-   train(A ~ .,
-                 data = df.A.train,
-                 method = "rf",
-                 trControl = ctrl,
-                 preProc = c("center", "scale"),
-                 importance = TRUE,
-                 verbose = TRUE)
+m.Fit <-   caret::train(A ~ .,
+                        data = df.A.train,
+                        method = "rf",
+                        trControl = ctrl,
+                        preProc = c("center", "scale"),
+                        importance = TRUE,
+                        verbose = TRUE)
 m.Fit$results
 
 #Variable importance
@@ -220,5 +220,6 @@ fRasterMap(DATA.DIR,
            REPROJECT=FALSE,#desired projection
            AXES=TRUE,#Axes and frame box with geographical tics
            EPSG=31468,#EPSG code (http://spatialreference.org)
-           TITLE="LS (wB)"
+           TITLE="DEM"
 )
+
