@@ -11,8 +11,8 @@
 #Settings
 #######################################################################################
 #Directories and input data
-DATA.DIR = "d:/Dropbox/GIT/ABAG/INPUT/"
-FUNC.DIR = "d:/Dropbox/GIT/ABAG/FUNCTION/"
+DATA.DIR = ".../INPUT/"
+FUNC.DIR = ".../FUNCTION/"
 EPSG = 31468
 DEM.FILE = "DEM name"#e.g. "DGM90_EPSG31468"
 VECTOR.FILE = "Koennern_Feldblock_EPSG31468.shp"
