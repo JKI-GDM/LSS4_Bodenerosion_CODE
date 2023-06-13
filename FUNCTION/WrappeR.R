@@ -14,11 +14,11 @@
 DATA.DIR = "d:/Dropbox/GIT/ABAG/INPUT/"
 FUNC.DIR = "d:/Dropbox/GIT/ABAG/FUNCTION/"
 EPSG = 31468
-DEM.FILE = "DGM90_EPSG31468"
+DEM.FILE = "DEM name"#e.g. "DGM90_EPSG31468"
 VECTOR.FILE = "Koennern_Feldblock_EPSG31468.shp"
 
 #Create directory
-OUT.DIR = "d:/Dropbox/GIT/ABAG/DATA/DGM90/"
+OUT.DIR = paste(DATA.DIR,DEM.FILE,"/",sep="")
 dir.create(OUT.DIR)
 
 #Load and install packages
