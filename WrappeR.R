@@ -1,6 +1,6 @@
 #######################################################################################
 #######################################################################################
-#Derivation coupling of ABAG factors (variants) LS, R and by using R and SAGA-GIS
+print("Derivation coupling of ABAG factors (variants) LS, R and by using R and SAGA-GIS")
 #######################################################################################
 #Land System Science 4 course, University of Halle-Wittenberg, Germany
 #Markus Möller, markus.moeller@julius-kuehn.de  
