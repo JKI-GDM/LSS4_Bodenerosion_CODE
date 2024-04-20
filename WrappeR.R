@@ -11,15 +11,15 @@
 #Settings
 #######################################################################################
 #Directories and input data
-DATA.DIR = ".../INPUT/"
-FUNC.DIR = ".../FUNCTION/"
+DATA.DIR = paste0(getwd(),"/INPUT/")
+FUNC.DIR = paste0(getwd(),"/FUNCTION/")
 EPSG = 31468
-DEM.FILE = "DEM name"#e.g. "DGM90_EPSG31468"
+DEM.FILE = "DGM90_EPSG31468"
 VECTOR.FILE = "Koennern_Feldblock_EPSG31468.shp"
-
-#Create directory
-OUT.DIR = paste(DATA.DIR,DEM.FILE,"/",sep="")
-dir.create(OUT.DIR)
+#Create output directory
+setwd(getwd())
+dir.create("OUTPUT")
+OUT.DIR = paste0(getwd(),"/OUTPUT/")
 
 #Load and install packages
 loadandinstall <- function(mypkg) {
@@ -124,10 +124,10 @@ sf::write_sf(st_as_sf(pr),paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""), delete_lay
 
 #List asc-files, which should be coupled 
 setwd(file.path(OUT.DIR))
-l.g <- gtools::mixedsort(list.files(pattern=paste("^(",DEM.FILE,").*\\.asc$",sep="")),decreasing=TRUE)
+l.g <- gtools::mixedsort(list.files(pattern=paste0("^(",DEM.FILE,").*\\.asc$")),decreasing=TRUE)
 print(l.g)
 
-source("d:/Dropbox/GIT/ABAG/FUNCTION/fZonalStatistics.R")
+source(file.path(FUNC.DIR,"fZonalStatistics.R"))
 for (i in 1:length(l.g)){
   fZonalStatistics(DATA.DIR=OUT.DIR,
                    RASTER.FILE=l.g[i],
@@ -139,11 +139,12 @@ for (i in 1:length(l.g)){
 #Calculating a correlation matrix of ABAG factors
 #######################################################################################
 #Import
-A <- sf::read_sf(paste(OUT.DIR,DEM.FILE,"_ABAG.shp",sep=""))
+A <- sf::read_sf(paste0(OUT.DIR,DEM.FILE,"_ABAG.shp"))
 #Remove geometry information
 sf::st_geometry(A) <- NULL
 
 #create a data frame of ABAG factors
+head(A)
 df.A <- data.frame(A[2:6])
 
 #Remove NA
@@ -153,7 +154,6 @@ df.A <- na.omit(df.A)
 
 #Correlation matrix
 cor(df.A)
-Hmisc::rcorr(as.matrix(df.A))
 
 #Correlation plot
 ?corrplot
@@ -165,7 +165,7 @@ corrplot::corrplot(cor(df.A),
 #######################################################################################
 #Calculation of Soil Loss and analyzing  ABAG factors 
 #######################################################################################
-#Selecting factos
+#Selecting factors
 df.A <- df.A[c(1,2,4)]
 head(df.A)
 
@@ -210,16 +210,14 @@ plot(varImp(m.Fit))
 #######################################################################################
 source(file.path(FUNC.DIR,"fRasterMap.R"))
 fRasterMap(DATA.DIR,
-           RASTER.FILE="DGM90_EPSG31468",
-           RASTER.FRM=".asc",
+           RASTER.FILE =DEM.FILE,
+           RASTER.FRM =".asc",
+           OUT.DIR = OUT.DIR,
            VECTOR.FILE="Koennern_Feldblock_EPSG31468",
            VECTOR.FRM = ".shp",
            N=9,#Number of classes
            D=2,#Number of decimal places
-           REVERS=FALSE,#revers colore order 
-           REPROJECT=FALSE,#desired projection
+           REVERS=FALSE,#revers color order 
            AXES=TRUE,#Axes and frame box with geographical tics
-           EPSG=31468,#EPSG code (http://spatialreference.org)
            TITLE="DEM"
 )
-
