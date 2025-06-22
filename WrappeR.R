@@ -13,6 +13,7 @@ print("Derivation coupling of ABAG factors (variants) LS, R and by using R and S
 #Directories and input data
 DATA.DIR = paste0(getwd(),"/INPUT/")
 FUNC.DIR = paste0(getwd(),"/FUNCTION/")
+SAGA.DIR = "c:/_saga_791_x64/saga_cmd.exe"
 EPSG = 31468
 DEM.FILE = "DGM90_EPSG31468"
 VECTOR.FILE = "Koennern_Feldblock_EPSG31468.shp"
@@ -37,7 +38,8 @@ packages <- sort(c("Rsagacmd",
                    "caret",
                    "utils",
                    "Hmisc",
-                   "corrplot"))
+                   "corrplot",
+                   "ranger"))
 loadandinstall(packages)
 
 #Package information
@@ -47,6 +49,22 @@ packageDescription("caret")
 #######################################################################################
 #LS factor derivation with SAGA-GIS
 #######################################################################################
+#Plot DEM
+source(file.path(FUNC.DIR,"fRasterMap.R"))
+fRasterMap(DATA.DIR,
+           RASTER.FILE =DEM.FILE,
+           RASTER.FRM =".asc",
+           OUT.DIR = OUT.DIR,
+           VECTOR.FILE="Koennern_Feldblock_EPSG31468",
+           VECTOR.FRM = ".shp",
+           N=9,#Number of classes
+           D=2,#Number of decimal places
+           REVERS=FALSE,#revers color order 
+           AXES=TRUE,#Axes and frame box with geographical tics
+           TITLE="DEM"
+)
+
+
 source(file.path(FUNC.DIR,"fLSrsagacmd.R"))
 fLSrsagacmd(DATA.DIR,
          DEM.FILE,
@@ -102,11 +120,27 @@ pal <- colorRampPalette(c("green","blue"))
 plot(rf, 
      breaks=cuts, 
      col = pal(20),
-     legend=FALSE) #plot with defined breaks
+     legend=TRUE) #plot with defined breaks
+
+#plot R factor
+source(file.path(FUNC.DIR,"fRasterMap.R"))
+fRasterMap(DATA.DIR,
+           RASTER.FILE ="R-Faktor_EPSG31468",
+           RASTER.FRM =".tif",
+           OUT.DIR = OUT.DIR,
+           VECTOR.FILE="Koennern_Feldblock_EPSG31468",
+           VECTOR.FRM = ".shp",
+           N=9,#Number of classes
+           D=2,#Number of decimal places
+           REVERS=FALSE,#revers color order 
+           AXES=TRUE,#Axes and frame box with geographical tics
+           TITLE="R factor"
+)
 
 #Resampling
 rf <- raster::resample(rf, r, method='bilinear')
 plot(rf)
+
 #Export
 raster::writeRaster(rf,paste(OUT.DIR,DEM.FILE,"_R.asc",sep=""), overwrite=TRUE)
 
@@ -175,7 +209,7 @@ head(df.A)
 
 #Derive training data set
 set.seed(123)
-indxTrain <- caret::createDataPartition(y = df.A$A, p = 0.25,list = FALSE)
+indxTrain <- caret::createDataPartition(y = df.A$A, p = 0.75,list = FALSE)
 df.A.train <- df.A[indxTrain,]
 df.A.test <- df.A[-indxTrain,]
 nrow(df.A)
@@ -183,20 +217,68 @@ nrow(df.A.train)
 nrow(df.A.test)
 
 #KS test of training and total data set
-ks.test(df.A.train$A,df.A$A)
+#KS test, checks whether data in two data sets are distributed identically.
+
+o.KS.train.test <- ks.test(df.A.train$A,df.A.test$A)
+o.KS.train.all <- ks.test(df.A.train$A,df.A$A)
+
+summary(o.KS.train.test)
+o.KS.train.test$statistic
+o.KS.train.test$p.value
+o.KS.train.all$statistic
+o.KS.train.all$p.value
+o.KS.train.test$method
+
+par(mfrow=c(1,2))
+plot(ecdf(df.A$A),
+     main=o.KS$method)
+plot(ecdf(df.A.train$A),
+     add=TRUE,
+     col="blue")
+plot(ecdf(df.A.test$A),
+     add=TRUE,
+     col="red")
+legend("bottomright",
+       title="KS-Test (Train/Test)",
+       c(paste("D =",round(ks.test(df.A.train$A,df.A.test$A)$statistic,2)),
+         paste("p = ",round(ks.test(df.A.train$A,df.A.test$A)$p.value,2))),
+       bty="n",
+       cex=1)
+legend("right",
+       title="KS-Test (Train/All)",
+       c(paste("D =",round(ks.test(df.A.train$A,df.A$A)$statistic,2)),
+         paste("p = ",round(ks.test(df.A.train$A,df.A$A)$p.value,2))),
+       bty="n",
+       cex=1)
+plot(density(df.A$A),
+     main="Density plots")
+lines(density(df.A.train$A),
+      col="blue")
+lines(density(df.A.test$A),
+      col="red")
+
+
 
 #Model
 set.seed(123)
-ctrl <- caret::trainControl(method="repeatedcv",
+ctrl <- caret::trainControl(method="cv",
                             number=5)
+
+tuneGrid <- expand.grid(
+  mtry = c(2, 3),        # Variables sampled per split
+  splitrule = "variance",     # Regression splitting rule
+  min.node.size = 3           # Node size
+)
+??ranger::ranger
 
 head(df.A.train)
 m.Fit <-   caret::train(A ~ .,
                         data = df.A.train,
-                        method = "rf",
+                        method = "ranger",
                         trControl = ctrl,
-                        preProc = c("center", "scale"),
-                        importance = TRUE,
+                        tuneGrid = tuneGrid,
+                        quantreg = TRUE,# Enable quantile regression
+                        importance = "impurity",
                         verbose = TRUE)
 m.Fit$results
 
@@ -204,20 +286,62 @@ m.Fit$results
 as.data.frame(varImp(m.Fit)$importance)
 plot(varImp(m.Fit))
 
+#Validation
+df.A.train$A.pre <- predict(m.Fit,newdata = df.A.train)
+df.A.test$A.pre <- predict(m.Fit,newdata = df.A.test)
+head(df.A.train)
+head(df.A.test)
 
-#######################################################################################
-#Plot raster files
-#######################################################################################
-source(file.path(FUNC.DIR,"fRasterMap.R"))
-fRasterMap(DATA.DIR,
-           RASTER.FILE =DEM.FILE,
-           RASTER.FRM =".asc",
-           OUT.DIR = OUT.DIR,
-           VECTOR.FILE="Koennern_Feldblock_EPSG31468",
-           VECTOR.FRM = ".shp",
-           N=9,#Number of classes
-           D=2,#Number of decimal places
-           REVERS=FALSE,#revers color order 
-           AXES=TRUE,#Axes and frame box with geographical tics
-           TITLE="DEM"
+# Predict quantiles (5% and 95%)
+pred_quantiles <- predict(
+  m.Fit$finalModel,       # Access ranger object
+  data = df.A.test,
+  type = "quantiles",
+  quantiles = c(0.05, 0.95)
 )
+
+df.A.test$A.q05 <- pred_quantiles$predictions[, 1]
+df.A.test$A.q95 <- pred_quantiles$predictions[, 2]
+df.A.test$A.uct <- df.A.test$A.q95 - df.A.test$A.q05
+head(df.A.test)
+
+
+#linear models of predicted and test/train data set 
+lm.test <-    train(A ~ A.pre,data=df.A.test,method = "lm")
+lm.test$results
+lm.test.R2 <- round(lm.test$results$Rsquared,3)
+lm.test.RMSE <- round(lm.test$results$RMSE,3)
+
+lm.train <-    train(A ~ A.pre,data=df.A.train,method = "lm")
+lm.train$results
+lm.train.R2 <- round(lm.train$results$Rsquared,3)
+lm.train.RMSE <- round(lm.train$results$RMSE,3)
+
+#plot biplot
+par(mfrow=c(1,2))
+plot(df.A.train$A,df.A.train$A.pre,
+     ylab="Prediction",
+     xlab="Train",
+     xlim=range(df.A.train$A,df.A.train$A.pre),
+     ylim=range(df.A.train$A,df.A.train$A.pre),
+     main="Training data set")
+legend("bottomright",   legend= c(as.expression(bquote({italic(R)^{2}} == .(lm.train.R2))), 
+                                  as.expression(bquote({italic(RMSE)} == .(lm.train.RMSE)))), bty="n",cex=1)
+abline(lm(df.A.test$A.pre~df.A.test$A),col="red",lwd=2)
+
+plot(df.A.test$A,df.A.test$A.q05,
+     ylab="Prediction",
+     xlab="Test",
+     xlim=range(df.A.train$A,df.A.train$A.pre),
+     ylim=range(df.A.train$A,df.A.train$A.pre),
+     main="Test data set"
+)
+points(df.A.test$A,df.A.test$A.q95,
+     col="black")
+points(df.A.test$A,df.A.test$A.pre,
+       col="blue")
+
+
+legend("bottomright",   legend= c(as.expression(bquote({italic(R)^{2}} == .(lm.test.R2))), 
+                                  as.expression(bquote({italic(RMSE)} == .(lm.test.RMSE)))), bty="n",cex=1)
+abline(lm(df.A.test$A.pre~df.A.test$A),col="red",lwd=2)
