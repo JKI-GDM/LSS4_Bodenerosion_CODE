@@ -13,7 +13,7 @@ print("fLSrsagacmd: Calculation of LS factor using SAGA GIS and Rsagacmd")
 
 print("[1] Initiating saga object")
 saga <- saga_gis(raster_backend = "terra",
-                 saga_bin = "c:/_saga_791_x64/saga_cmd.exe")
+                 saga_bin = SAGA.DIR)
 
 #########################################################################################################
 ##Function
