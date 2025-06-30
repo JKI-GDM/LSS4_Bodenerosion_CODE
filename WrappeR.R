@@ -15,6 +15,7 @@ DATA.DIR = paste0(getwd(),"/INPUT/")
 FUNC.DIR = paste0(getwd(),"/FUNCTION/")
 SAGA.DIR = "c:/_saga_791_x64/saga_cmd.exe"
 EPSG = 31468
+RESOLUTION = 90
 DEM.FILE = "DGM90_EPSG31468"
 VECTOR.FILE = "Koennern_Feldblock_EPSG31468.shp"
 #Create output directory
@@ -81,9 +82,11 @@ fLSrsagacmd(DATA.DIR,
 r <- raster::raster(paste(DATA.DIR,DEM.FILE,".asc",sep=""))
 r
 crs(r) <- CRS(paste("+init=EPSG:",EPSG,sep=""))
-r
+r <- projectRaster(r, crs = crs(r), res = RESOLUTION)
+res(r)
 plot(r)
 r <- r*0+1
+plot(r)
 
 # Import soil taxation
 k <- sf::read_sf(paste(DATA.DIR,"Koennern_BS_EPSG31468.shp",sep="")) 
@@ -93,6 +96,8 @@ plot(density(k$KBxKH_BSGB,na.rm=TRUE))
 #Rasterize
 extent(r) <- extent(k)
 kbs <- raster::rasterize(k, r, 'KBxKH_BSGB')
+res(kbs)
+kbs <- projectRaster(kbs, crs = crs(r), res = RESOLUTION)
 plot(kbs)
 # Export
 raster::writeRaster(kbs,paste(OUT.DIR,DEM.FILE,"_KBS.asc",sep=""),overwrite=TRUE)
@@ -105,6 +110,8 @@ plot(density(k$K_Faktor,na.rm=TRUE))
 #Rasterize
 extent(r) <- extent(k)
 kbk <- raster::rasterize(k, r, 'K_Faktor')
+res(kbk)
+kbk <- projectRaster(kbk, crs = crs(r), res = RESOLUTION)
 plot(kbk)
 #Export
 raster::writeRaster(kbk,paste(OUT.DIR,DEM.FILE,"_KBK.asc",sep=""),overwrite=TRUE)
@@ -139,6 +146,8 @@ fRasterMap(DATA.DIR,
 
 #Resampling
 rf <- raster::resample(rf, r, method='bilinear')
+res(rf)
+rf <- projectRaster(rf, crs = crs(r), res = RESOLUTION)
 plot(rf)
 
 #Export
@@ -182,8 +191,10 @@ head(A)
 df.A <- data.frame(A[2:6])
 
 #Remove NA
+nrow(df.A)
 df.A[df.A == 0] <- NA
 df.A <- na.omit(df.A)
+nrow(df.A)
 
 
 #Correlation matrix
