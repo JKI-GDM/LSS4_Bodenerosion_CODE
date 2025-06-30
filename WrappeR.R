@@ -242,7 +242,7 @@ o.KS.train.test$method
 
 par(mfrow=c(1,2))
 plot(ecdf(df.A$A),
-     main=o.KS$method)
+     main="ECDF plots")
 plot(ecdf(df.A.train$A),
      add=TRUE,
      col="blue")
